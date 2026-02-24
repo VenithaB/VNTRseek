@@ -1,29 +1,67 @@
-# Overview
+# VNTRseek (v2.0.3.LabFix)
 
-VNTRseek is a computational pipeline for the detection of VNTRs.
-Given an input reference set of TRs and a set of next-generation sequencing reads,
-such as those produced by Illumina, VNTRseek produces a database and a VCF file with VNTR calls.
+[cite_start]VNTRseek is a computational pipeline for the detection of Variable Number Tandem Repeats (VNTRs) from next-generation sequencing reads[cite: 3]. [cite_start]Given a reference set of Tandem Repeats (TRs) and sequencing reads (e.g., Illumina), it produces a comprehensive SQLite database and a VCF file containing VNTR calls[cite: 3, 104].
 
-Currently, input reads in FASTA, FASTQ, SAM, BAM, and CRAM format are supported.
-Files can be compressed using plain gzip (.gz), bzip2 (.bz, .bz2), or xz (.xz) format,
-optionally preceeded by tar (.tgz, .tar.gz, .tbz, .tbz2, .tar.bz , .tar.bz2, .txz, .tar.xz)
+## 🛠 Lab-Specific Bug Fixes
+This fork includes critical patches to the original version 2.0.3 source code to ensure stability:
+* **Config Generation Fix**: Fixed a "numeric comparison" bug in `vntrseek.pl` that caused the script to crash when generating a config file with a string-based filename.
+* **Flag Standardization**: Corrected internal logic to ensure the `--GEN_CONFIG` flag operates consistently with provided paths.
 
-VNTRseek readily runs on Sun Grid Engine clusters. Support for other platforms as pull requests is welcome.
+## 🚀 Quick Start (Mandatory Command Structure)
+[cite_start]Unlike earlier versions, this pipeline requires a **start and end step** to be provided for *all* operations, including setup tasks[cite: 24, 25].
 
-# Documentation
+### 1. Generate a Configuration File
+To generate a default template, you must include dummy step numbers (`0 0`):
+```bash
+./vntrseek.pl 0 0 --GEN_CONFIG ./default.cnf 
+```
 
-See the [running instructions](RUNNING.md) for information on the latest running parameters.
-An [output description](RESULTS.md) is included.
+### 2. Initialize the Reference Database
+[cite_start] This only needs to be done once per reference set. Provide the base name of your reference files: 
 
-# Download
+```bash
+./vntrseek.pl 0 0 --REFERENCE /path/to/reference/basename
+```
 
-The latest version of VNTRseek is 2.0.3. You can download it from the [Github repo](https://github.com/Benson-Genomics-Lab/VNTRseek/releases).
-An active (likely unstable) [branch for v2 series development](https://github.com/Benson-Genomics-Lab/VNTRseek/tree/v2.0_dev) is available for pull contributions.
+### 3. Run the Full Pipeline
 
-# Edlib Attribution
+[cite_start] To run the complete analysis (Step 0 to Step 20):
 
-A slimmed down version of [Edlib](https://github.com/Martinsos/edlib) is included.
-It contains the original code for calculations, all credit to original author.
-Test scripts and extended features are removed, as well as original build files.
-A wrapper script has been added for obtaining the NICE alignment
-strings from simple command line input.
+```bash
+
+./vntrseek.pl 0 20 --CONFIG ./my_config.cnf --RUN_NAME "my_analysis"
+```
+
+## 🛠 Input:
+
+    * Supported Formats: FASTA (.fa), FASTQ (.fq), SAM, BAM, and CRAM .
+
+    * Directory Based: Specify the directory containing your reads using --INPUT_DIR.
+
+    * Compression: Supports gz, bz2, and xz (optionally preceded by tar). All files in a single run directory must use the same compression format.
+	
+##  Output:
+
+#### Results are written to $OUTPUT_DIR/vntr_$RUN_NAME/
+
+    * {RUN_NAME}.db: SQLite database containing complete processing data.
+
+    * {RUN_NAME}.span2.vcf: The final VCF file containing called VNTRs.
+
+    * {RUN_NAME}.vs.cnf: A record of the last settings used for the analysis.
+
+    * data_out/: Intermediate files from TRF and trf2proclu.
+
+## 🔧 Error Management
+
+	VNTRseek stores the last error encountered and will not resume a run until the error is manually cleared.
+
+    #### Clear Error: 
+	``` bash
+	./vntrseek.pl 100 --RUN_NAME "my_analysis".
+	```
+	
+    #### Clear & Reset Step: 
+	``` bash ./vntrseek.pl 100 N --RUN_NAME "my_analysis" 
+	(where N is the new start step)
+	```

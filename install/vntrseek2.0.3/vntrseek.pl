@@ -122,7 +122,7 @@ if ($opts{'GEN_CONFIG'}) {
     die "File $opts{'GEN_CONFIG'} already exists. Will not overwrite."
         if -e $opts{'GEN_CONFIG'};
  
-    if ($opts{'GEN_CONFIG'} == 1) {
+    if ($opts{'GEN_CONFIG'} eq '1') {
         $opts{'GEN_CONFIG'} = 'example.vs.cnf';
     }
     system("cp $install_dir/defaults.vs.cnf $opts{'GEN_CONFIG'}");
