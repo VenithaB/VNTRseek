@@ -5,7 +5,16 @@
 ## 🛠 Lab-Specific Bug Fixes
 This fork includes critical patches to the original version 2.0.3 source code to ensure stability:
 * **Config Generation Fix**: Fixed a "numeric comparison" bug in `vntrseek.pl` that caused the script to crash when generating a config file with a string-based filename.
+
 * **Flag Standardization**: Corrected internal logic to ensure the `--GEN_CONFIG` flag operates consistently with provided paths.
+
+* **Reference Path Fix**: Fixed `vutil.pm` to use an absolute path for the `.leb36` 
+  reference file, preventing `redund.exe` from failing to locate it depending on 
+  working directory.
+
+* **redund.exe Single-File Fix**: Fixed a bug in `redund2.c` where `filecounter` was 
+  never incremented when processing a single file (non-directory) input on the second 
+  pass, causing a crash with `filecounter: 0 not equal to FARRAY->size: 1`.
 
 ## 🚀 Quick Start (Mandatory Command Structure)
 [cite_start]Unlike earlier versions, this pipeline requires a **start and end step** to be provided for *all* operations, including setup tasks[cite: 24, 25].
