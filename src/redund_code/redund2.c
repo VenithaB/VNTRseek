@@ -864,6 +864,7 @@ int main( int argc, char **argv ) {
             fiptr->d_name =
               strdup( inputfile ); // this won't be used in this case
             EasyArrayInsert( FARRAY, fiptr );
+			filecounter++;
 
         } else {
             printf(

@@ -414,7 +414,7 @@ sub _init_ref_dbh {
     my ( $refbase, $opts ) = @_;
     my $refdbfile = $refbase . ".db";
     my $refseq    = $refbase . ".seq";
-    my $refleb36  = $refbase . ".leb36";
+    my $refleb36  = abs_path($refbase . ".leb36");
     my $refindist = $refbase . ".indist";
     my %dbi_opts  = (
         AutoCommit                 => 1,
@@ -1016,7 +1016,7 @@ sub run_redund {
 
     #=<<Run redund.exe on the input leb36 files.>>
     # First run sorts by minimum representation
-    my $tmp_file = File::Temp->new( SUFFIX => ".leb36", DIR => $tmpdir_name );
+	my $tmp_file = "$tmpdir_name/redund_sorted_$$.leb36";
     my $installdir = "$FindBin::RealBin";
     system("$installdir/redund.exe $input_refset $tmp_file -s -i");
     if ( $? == -1 ) { die "command failed: $!\n"; }
