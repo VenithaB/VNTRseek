@@ -1,0 +1,10 @@
+build/
+*.sublime-*
+.vscode
+.vstags
+*.code-workspace
+*.tar.gz
+*.log
+local/
+vendor/
+*.ipynb_checkpoints
