@@ -8,3 +8,4 @@ build/
 local/
 vendor/
 *.ipynb_checkpointsinstall/
+install/
