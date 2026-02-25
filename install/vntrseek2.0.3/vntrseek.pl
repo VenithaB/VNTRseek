@@ -134,7 +134,22 @@ if ($opts{'GEN_CONFIG'}) {
 # Load configuration files and combine with CLI args.
 # Make sure all the configuration options are safe for running.
 %opts = get_config(%opts);
+
+# enter install directory
+die("Cannot access install directory ($install_dir).\n")
+    unless chdir("$install_dir");
+
+# Initialize a reference set db if --reference was given, but not --RUN_NAME
+if (!$opts{'RUN_NAME'} && $opts{'REFERENCE'} ) {
+    print "\nPreparing reference set $opts{'REFERENCE'}...\n";
+    my $dbh = get_ref_dbh( $opts{'REFERENCE'}, { redo => $opts{'REDO_REFDB'} } );
+    die "Error importing reference set\n" unless $dbh;
+    exit;
+}
+
+unless (exists $opts{'REFERENCE'}) {
 validate_config();
+}
 
 # the output of the pipeline, ex: "/bfdisk/vntr_$RUN_NAME";
 my $output_folder = "$opts{OUTPUT_DIR}/vntr_$opts{RUN_NAME}";
@@ -144,18 +159,6 @@ die "Cannot access output folder at $output_folder. Check permissions."
 # Write out a terse config file to output directory.
 my $config_file = print_config();
 
-
-# enter install directory
-die("Cannot access install directory ($install_dir).\n")
-    unless chdir("$install_dir");
-
-# Initialize a reference set db if --reference was given, but not --RUN_NAME
-if (!exists $opts{'RUN_NAME'} && exists $opts{'REFERENCE'} ) {
-    print "\nPreparing reference set $opts{'REFERENCE'}...\n";
-    my $dbh = get_ref_dbh( $opts{'REFERENCE'}, { redo => $opts{'REDO_REFDB'} } );
-    die "Error importing reference set\n" unless $dbh;
-    exit;
-}
 
 # Print a nicely formatted table with all stats if "STATS" flag is given
 if (exists $opts{'STATS'}) {
@@ -758,7 +761,7 @@ if ( $STEP == 20 ) {
     my $dbf2 = "$output_folder/$opts{RUN_NAME}_rl$opts{READ_LENGTH}.db";
     my $dbh = DBI->connect("DBI:SQLite:dbname=$dbf");
     $dbh->do(qq(ATTACH DATABASE "$dbf2" as newdb));
-    $dbh->do(q{
+    $dbh->do(qq{
     UPDATE newdb.stats
     SET TIME_$sn = (select TIME_$sn from stats),
         DATE_$sn = (select DATE_$sn from stats)});

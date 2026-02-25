@@ -932,10 +932,23 @@ sub load_refprofiles_db {
         $dbh->commit();
 
         # Run redund
-        try {
-            print "Running redund on ref set.\n";
-            run_redund( $dbh, $refleb36, "reference.leb36", 0, 0 );
-        }
+        
+		# Write filtered leb36 (exclude patterns shorter than MIN_PERIOD_REQUIRED=7)
+		my $filtered_leb36 = File::Temp->new( SUFFIX => ".leb36" );
+		my $filtered_leb36_name = $filtered_leb36->filename;
+		open my $in_fh, "<", $refleb36 or die "Cannot open $refleb36: $!";
+		while ( my $line = <$in_fh> ) {
+			my @f = split /\s+/, $line;
+			print $filtered_leb36 $line if $f[1] >= 7;
+		}
+		close $in_fh;
+		close $filtered_leb36;
+
+		# Run redund
+		try {
+			print "Running redund on ref set.\n";
+			run_redund( $dbh, $filtered_leb36_name, "reference.leb36", 0, 0 );
+		}
         catch {
             warn "Error running redund on reference set: $_\n";
             # if (/DBD::SQLite::db/) {
