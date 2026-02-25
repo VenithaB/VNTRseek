@@ -114,7 +114,7 @@ sub fork_proclu {
     # child
     foreach (@file_slice) {
         $proclu_string = "$PROCLU $PROCLU_PARAM_START $_ $PROCLU_PARAM_END"
-                         . "$maxerror $maxflanconsid 2>${_}.proclu_log";
+                         . " $maxerror $maxflanconsid 2>${_}.proclu_log";
         system($proclu_string);
 
         if ( $? == -1 ) { die "command failed: $!\n"; }

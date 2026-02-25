@@ -44,7 +44,7 @@ use vutil
     qw(get_config validate_config print_config get_dbh get_ref_dbh
     set_statistics get_statistics set_datetime write_sqlite);
 
-my $VERSION = '@VNTRVer@';
+my $VERSION = '2.0.3';
 my $install_dir = "$FindBin::RealBin"; # where the pipeline is installed
 my $run_dir = getcwd();                # where the script gets called from
 
@@ -122,7 +122,7 @@ if ($opts{'GEN_CONFIG'}) {
     die "File $opts{'GEN_CONFIG'} already exists. Will not overwrite."
         if -e $opts{'GEN_CONFIG'};
  
-    if ($opts{'GEN_CONFIG'} == 1) {
+    if ($opts{'GEN_CONFIG'} eq '1') {
         $opts{'GEN_CONFIG'} = 'example.vs.cnf';
     }
     system("cp $install_dir/defaults.vs.cnf $opts{'GEN_CONFIG'}");
@@ -134,7 +134,22 @@ if ($opts{'GEN_CONFIG'}) {
 # Load configuration files and combine with CLI args.
 # Make sure all the configuration options are safe for running.
 %opts = get_config(%opts);
+
+# enter install directory
+die("Cannot access install directory ($install_dir).\n")
+    unless chdir("$install_dir");
+
+# Initialize a reference set db if --reference was given, but not --RUN_NAME
+if (!$opts{'RUN_NAME'} && $opts{'REFERENCE'} ) {
+    print "\nPreparing reference set $opts{'REFERENCE'}...\n";
+    my $dbh = get_ref_dbh( $opts{'REFERENCE'}, { redo => $opts{'REDO_REFDB'} } );
+    die "Error importing reference set\n" unless $dbh;
+    exit;
+}
+
+unless (exists $opts{'REFERENCE'}) {
 validate_config();
+}
 
 # the output of the pipeline, ex: "/bfdisk/vntr_$RUN_NAME";
 my $output_folder = "$opts{OUTPUT_DIR}/vntr_$opts{RUN_NAME}";
@@ -144,18 +159,6 @@ die "Cannot access output folder at $output_folder. Check permissions."
 # Write out a terse config file to output directory.
 my $config_file = print_config();
 
-
-# enter install directory
-die("Cannot access install directory ($install_dir).\n")
-    unless chdir("$install_dir");
-
-# Initialize a reference set db if --reference was given, but not --RUN_NAME
-if (!exists $opts{'RUN_NAME'} && exists $opts{'REFERENCE'} ) {
-    print "\nPreparing reference set $opts{'REFERENCE'}...\n";
-    my $dbh = get_ref_dbh( $opts{'REFERENCE'}, { redo => $opts{'REDO_REFDB'} } );
-    die "Error importing reference set\n" unless $dbh;
-    exit;
-}
 
 # Print a nicely formatted table with all stats if "STATS" flag is given
 if (exists $opts{'STATS'}) {
@@ -204,7 +207,7 @@ my $MISMATCH = 5;
 my $INDEL    = 7;
 my $MIN_PERIOD_REQUIRED = 7;    # anything with pattern less then this is discarded
 
-my $TRF_EXECUTABLE = '@TRFBin@';
+my $TRF_EXECUTABLE = 'trf409-ngs.linux.exe';
 my $TRF_PARAM
     = "'./$TRF_EXECUTABLE' - $MATCH $MISMATCH $INDEL 80 10 50 2000 -d -h -ngs";
 
@@ -758,7 +761,7 @@ if ( $STEP == 20 ) {
     my $dbf2 = "$output_folder/$opts{RUN_NAME}_rl$opts{READ_LENGTH}.db";
     my $dbh = DBI->connect("DBI:SQLite:dbname=$dbf");
     $dbh->do(qq(ATTACH DATABASE "$dbf2" as newdb));
-    $dbh->do(q{
+    $dbh->do(qq{
     UPDATE newdb.stats
     SET TIME_$sn = (select TIME_$sn from stats),
         DATE_$sn = (select DATE_$sn from stats)});

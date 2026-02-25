@@ -77,7 +77,6 @@ while ( my @data = $sth->fetchrow_array() ) {
 }
 close ($fh) if ($fh);
 $sth->finish();
-$dbh->disconnect();
 
 print "Indexing complete, $nrefs files created.\n";
 
