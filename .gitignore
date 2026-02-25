@@ -7,4 +7,4 @@ build/
 *.log
 local/
 vendor/
-*.ipynb_checkpoints
+*.ipynb_checkpointsinstall/
